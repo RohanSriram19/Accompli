@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.5",
     "@tanstack/react-query": "^5.17.19",
     "@tanstack/react-query-devtools": "^5.17.21",
     "class-variance-authority": "^0.7.1",
@@ -17,6 +18,7 @@
     "framer-motion": "^10.18.0",
     "lucide-react": "^0.309.0",
     "next": "14.1.0",
+    "openai": "^5.12.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io-client": "^4.7.4",

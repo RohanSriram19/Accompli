@@ -19,9 +19,11 @@ interface AuthState {
   user: User | null
   token: string | null
   isAuthenticated: boolean
+  isLoading: boolean
   signIn: (user: User, token: string) => Promise<void>
   signOut: () => void
   updateUser: (updates: Partial<User>) => void
+  setLoading: (loading: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -30,12 +32,14 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      isLoading: true,
 
       signIn: async (user: User, token: string) => {
         set({
           user,
           token,
           isAuthenticated: true,
+          isLoading: false,
         })
       },
 
@@ -44,7 +48,12 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           token: null,
           isAuthenticated: false,
+          isLoading: false,
         })
+      },
+
+      setLoading: (loading: boolean) => {
+        set({ isLoading: loading })
       },
 
       updateUser: (updates: Partial<User>) => {
@@ -63,6 +72,9 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setLoading(false)
+      },
     }
   )
 )

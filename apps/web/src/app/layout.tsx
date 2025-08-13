@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { QueryProvider } from '@/lib/query-provider'
 import { Toaster } from '@/components/ui/toaster'
+import { AIAssistant } from '@/components/ai-assistant'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <QueryProvider>
           {children}
           <Toaster />
+          <AIAssistant />
         </QueryProvider>
       </body>
     </html>

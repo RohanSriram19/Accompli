@@ -42,8 +42,14 @@ export function DashboardHeader() {
                 <a href="/students" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Students
                 </a>
+                <a href="/goals" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                  IEP Goals
+                </a>
                 <a href="/lesson-plans" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Lesson Plans
+                </a>
+                <a href="/assessments" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                  Assessments
                 </a>
                 <a href="/reports" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Reports

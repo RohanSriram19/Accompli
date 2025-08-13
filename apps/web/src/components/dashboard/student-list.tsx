@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Eye, GraduationCap, AlertTriangle, FileText, Calendar } from 'lucide-react'
+import { Eye, GraduationCap, AlertTriangle, FileText, Calendar, Users, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface Student {
   id: string
@@ -25,8 +27,12 @@ interface Student {
 }
 
 export function StudentList() {
-  // Real IEP-aligned student data
-  const students: Student[] = [
+  const router = useRouter()
+  const [students, setStudents] = useState<Student[]>([])
+  const [showingExamples, setShowingExamples] = useState(false)
+
+  // Example student data
+  const exampleStudents: Student[] = [
     {
       id: '1',
       first_name: 'Emma',
@@ -104,17 +110,47 @@ export function StudentList() {
     return 'bg-red-500'
   }
 
+  const loadExamples = () => {
+    setStudents(exampleStudents)
+    setShowingExamples(true)
+  }
+
+  const clearStudents = () => {
+    setStudents([])
+    setShowingExamples(false)
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Student Caseload</CardTitle>
-        <Button variant="outline" size="sm">
-          View All IEPs
-        </Button>
+        <div className="flex space-x-2">
+          {students.length === 0 && (
+            <Button variant="outline" size="sm" onClick={loadExamples}>
+              <Eye className="h-4 w-4 mr-1" />
+              Examples
+            </Button>
+          )}
+          {showingExamples && (
+            <Button variant="outline" size="sm" onClick={clearStudents}>
+              Clear
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => router.push('/students')}>
+            View All IEPs
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {students.map((student) => (
+        {students.length === 0 ? (
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">No students in caseload</p>
+            <p className="text-sm text-gray-500 mt-1">Add students to see them here</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {students.map((student) => (
             <div
               key={student.id}
               className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -216,13 +252,14 @@ export function StudentList() {
                     <span>Next: {new Date(student.next_review).toLocaleDateString()}</span>
                   </span>
                 </div>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" onClick={() => router.push(`/students/${student.id}`)}>
                   <Eye className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

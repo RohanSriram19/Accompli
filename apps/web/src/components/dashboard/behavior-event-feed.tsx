@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, User } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, Clock, User, Eye, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface BehaviorEvent {
   id: string
@@ -14,8 +17,12 @@ interface BehaviorEvent {
 }
 
 export function BehaviorEventFeed() {
-  // Mock data - replace with real API calls
-  const recentEvents: BehaviorEvent[] = [
+  const router = useRouter()
+  const [events, setEvents] = useState<BehaviorEvent[]>([])
+  const [showingExamples, setShowingExamples] = useState(false)
+  
+  // Example data
+  const exampleEvents: BehaviorEvent[] = [
     {
       id: '1',
       student_name: 'Tyler Brown',
@@ -50,6 +57,16 @@ export function BehaviorEventFeed() {
     }
   ]
 
+  const loadExamples = () => {
+    setEvents(exampleEvents)
+    setShowingExamples(true)
+  }
+
+  const clearEvents = () => {
+    setEvents([])
+    setShowingExamples(false)
+  }
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
@@ -73,14 +90,34 @@ export function BehaviorEventFeed() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <AlertTriangle className="h-5 w-5" />
-          <span>Recent Events</span>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center space-x-2">
+            <AlertTriangle className="h-5 w-5" />
+            <span>Recent Events</span>
+          </CardTitle>
+          {events.length === 0 && (
+            <Button variant="outline" size="sm" onClick={loadExamples}>
+              <Eye className="h-4 w-4 mr-1" />
+              Examples
+            </Button>
+          )}
+          {showingExamples && (
+            <Button variant="outline" size="sm" onClick={clearEvents}>
+              Clear
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {recentEvents.map((event) => (
+        {events.length === 0 ? (
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">No recent behavior events</p>
+            <p className="text-sm text-gray-500 mt-1">Events will appear here when logged</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {events.map((event) => (
             <div
               key={event.id}
               className="border-l-4 border-gray-200 pl-4 pb-4 last:pb-0"
@@ -114,13 +151,19 @@ export function BehaviorEventFeed() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
         
-        <div className="mt-4 pt-4 border-t">
-          <button className="text-sm text-blue-600 hover:text-blue-800">
-            View all events →
-          </button>
-        </div>
+        {events.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <button 
+              className="text-sm text-blue-600 hover:text-blue-800"
+              onClick={() => router.push('/log-behavior')}
+            >
+              View all events →
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

@@ -1,0 +1,647 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/lib/auth-store'
+import { useRequireAuth } from '@/lib/use-require-auth'
+import { DashboardHeader } from '@/components/dashboard/header'
+import { IEPGoalGenerator } from '@/components/iep-goal-generator'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
+  Target, Plus, Search, Calendar, User, TrendingUp, CheckCircle,
+  AlertTriangle, Clock, Edit, Archive, Copy, FileText, 
+  BarChart3, Users, Filter, Download, Star, BookOpen
+} from 'lucide-react'
+
+export default function GoalsPage() {
+  const { user } = useAuthStore()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('active-goals')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState('all')
+  const [selectedArea, setSelectedArea] = useState('all')
+
+  // Require authentication
+  const { isLoading } = useRequireAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    )
+  }
+
+  // Mock IEP goals data
+  const goals = [
+    {
+      id: '1',
+      student: 'Emma Johnson',
+      area: 'Reading',
+      goal_number: '1.1',
+      title: 'Reading Fluency',
+      description: 'By the end of the IEP year, when given grade-level text, Emma will read aloud with accuracy, appropriate rate, and expression at 80 words per minute with 95% accuracy as measured by curriculum-based measurement probes administered weekly.',
+      baseline: '45 words per minute with 85% accuracy',
+      target: '80 words per minute with 95% accuracy',
+      current_progress: 85,
+      target_score: 80,
+      progress_percentage: 75,
+      status: 'on_track',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-12',
+      accommodations: ['Extended time', 'Preferred seating', 'Read aloud for non-reading assessments'],
+      teaching_strategies: ['Repeated reading', 'Echo reading', 'Progress monitoring'],
+      data_collection: 'Weekly CBM probes',
+      mastery_criteria: '3 consecutive sessions at target level',
+      responsible_staff: ['Sarah Johnson', 'Reading Specialist'],
+      next_review: '2025-03-01'
+    },
+    {
+      id: '2',
+      student: 'Emma Johnson',
+      area: 'Reading',
+      goal_number: '1.2',
+      title: 'Reading Comprehension',
+      description: 'By the end of the IEP year, when given grade-level passages, Emma will answer comprehension questions (literal, inferential, and evaluative) with 80% accuracy across 4 out of 5 consecutive weekly assessments.',
+      baseline: '60% accuracy on comprehension questions',
+      target: '80% accuracy on comprehension questions',
+      current_progress: 75,
+      target_score: 80,
+      progress_percentage: 65,
+      status: 'at_risk',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-10',
+      accommodations: ['Graphic organizers', 'Text highlighting', 'Extended time'],
+      teaching_strategies: ['Guided reading', 'Think-alouds', 'Question-answer relationships'],
+      data_collection: 'Weekly reading comprehension assessments',
+      mastery_criteria: '4 out of 5 consecutive assessments at 80%',
+      responsible_staff: ['Sarah Johnson'],
+      next_review: '2025-03-01'
+    },
+    {
+      id: '3',
+      student: 'Tyler Brown',
+      area: 'Math',
+      goal_number: '2.1',
+      title: 'Math Problem Solving',
+      description: 'By the end of the IEP year, when given two-step word problems involving addition and subtraction, Tyler will solve problems correctly 75% of the time across 3 consecutive weekly assessments using visual supports and organizational strategies.',
+      baseline: '45% accuracy on two-step word problems',
+      target: '75% accuracy on two-step word problems',
+      current_progress: 70,
+      target_score: 75,
+      progress_percentage: 80,
+      status: 'on_track',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-11',
+      accommodations: ['Calculator for computation', 'Visual supports', 'Extended time'],
+      teaching_strategies: ['Concrete-representational-abstract', 'Problem-solving strategies', 'Peer tutoring'],
+      data_collection: 'Weekly problem-solving assessments',
+      mastery_criteria: '3 consecutive weeks at 75% accuracy',
+      responsible_staff: ['Sarah Johnson', 'Math Specialist'],
+      next_review: '2025-03-01'
+    },
+    {
+      id: '4',
+      student: 'Tyler Brown',
+      area: 'Social/Behavioral',
+      goal_number: '2.2',
+      title: 'Social Communication',
+      description: 'By the end of the IEP year, during structured and unstructured social activities, Tyler will initiate and maintain appropriate peer interactions for 15 minutes with minimal adult prompting in 8 out of 10 observed opportunities.',
+      baseline: '2 minutes of sustained peer interaction with frequent prompting',
+      target: '15 minutes of sustained peer interaction with minimal prompting',
+      current_progress: 90,
+      target_score: 85,
+      progress_percentage: 95,
+      status: 'exceeding',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-09',
+      accommodations: ['Visual cues', 'Social scripts', 'Peer support'],
+      teaching_strategies: ['Social skills instruction', 'Role-playing', 'Video modeling'],
+      data_collection: 'Daily behavior tracking and weekly observations',
+      mastery_criteria: '8 out of 10 opportunities for 2 consecutive weeks',
+      responsible_staff: ['Sarah Johnson', 'Speech Therapist'],
+      next_review: '2025-03-01'
+    },
+    {
+      id: '5',
+      student: 'Sophia Chen',
+      area: 'Math',
+      goal_number: '3.1',
+      title: 'Math Computation',
+      description: 'By the end of the IEP year, when given 20 mixed addition and subtraction problems with regrouping, Sophia will solve problems with 85% accuracy within 15 minutes across 3 consecutive weekly assessments.',
+      baseline: '55% accuracy in 20 minutes',
+      target: '85% accuracy in 15 minutes',
+      current_progress: 60,
+      target_score: 85,
+      progress_percentage: 40,
+      status: 'needs_support',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-08',
+      accommodations: ['Calculator for checking', 'Graph paper', 'Extended time'],
+      teaching_strategies: ['Explicit instruction', 'Guided practice', 'Error analysis'],
+      data_collection: 'Weekly timed computation assessments',
+      mastery_criteria: '3 consecutive weeks at target level',
+      responsible_staff: ['Sarah Johnson'],
+      next_review: '2025-03-01'
+    },
+    {
+      id: '6',
+      student: 'Marcus Williams',
+      area: 'Transition',
+      goal_number: '4.1',
+      title: 'Transition Planning',
+      description: 'By the end of the IEP year, Marcus will complete job application materials (resume, cover letter, references) with 90% accuracy and participate in mock interviews demonstrating appropriate communication skills in 4 out of 5 opportunities.',
+      baseline: '60% accuracy on application materials, limited interview skills',
+      target: '90% accuracy on applications, appropriate interview skills',
+      current_progress: 88,
+      target_score: 90,
+      progress_percentage: 85,
+      status: 'on_track',
+      start_date: '2024-09-01',
+      end_date: '2025-08-31',
+      last_updated: '2024-12-07',
+      accommodations: ['Templates provided', 'Practice interviews', 'Job coach support'],
+      teaching_strategies: ['Direct instruction', 'Role-playing', 'Community-based instruction'],
+      data_collection: 'Portfolio assessment and interview rubrics',
+      mastery_criteria: '4 out of 5 opportunities for 2 consecutive weeks',
+      responsible_staff: ['Sarah Johnson', 'Transition Coordinator'],
+      next_review: '2025-03-01'
+    }
+  ]
+
+  const students = ['Emma Johnson', 'Tyler Brown', 'Sophia Chen', 'Marcus Williams']
+  const areas = ['Reading', 'Math', 'Writing', 'Social/Behavioral', 'Transition', 'Communication', 'Motor Skills']
+
+  const filteredGoals = goals.filter(goal => {
+    const matchesSearch = goal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         goal.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         goal.description.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStudent = selectedStudent === 'all' || goal.student === selectedStudent
+    const matchesArea = selectedArea === 'all' || goal.area === selectedArea
+    
+    return matchesSearch && matchesStudent && matchesArea
+  })
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'exceeding': return 'bg-green-100 text-green-800 border-green-200'
+      case 'on_track': return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'at_risk': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'needs_support': return 'bg-red-100 text-red-800 border-red-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'exceeding': return <Star className="h-4 w-4" />
+      case 'on_track': return <CheckCircle className="h-4 w-4" />
+      case 'at_risk': return <Clock className="h-4 w-4" />
+      case 'needs_support': return <AlertTriangle className="h-4 w-4" />
+      default: return <Target className="h-4 w-4" />
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                <Target className="h-6 w-6 text-blue-600" />
+                <span>IEP Goals Management</span>
+              </h1>
+              <p className="text-gray-600">Track and manage Individual Education Plan goals and progress</p>
+            </div>
+            <div className="flex space-x-3">
+              <IEPGoalGenerator />
+              <Button onClick={() => router.push('/goals/new')}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Goal
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Star className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Exceeding</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {goals.filter(g => g.status === 'exceeding').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">On Track</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {goals.filter(g => g.status === 'on_track').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-yellow-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">At Risk</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {goals.filter(g => g.status === 'at_risk').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Needs Support</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {goals.filter(g => g.status === 'needs_support').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="active-goals">Active Goals</TabsTrigger>
+            <TabsTrigger value="progress-tracking">Progress Tracking</TabsTrigger>
+            <TabsTrigger value="goal-analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active-goals" className="space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search goals..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div>
+                    <select
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">All Students</option>
+                      {students.map(student => (
+                        <option key={student} value={student}>{student}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <select
+                      value={selectedArea}
+                      onChange={(e) => setSelectedArea(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="all">All Areas</option>
+                      {areas.map(area => (
+                        <option key={area} value={area}>{area}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <Button variant="outline" className="w-full">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Goals
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Goals List */}
+            <div className="space-y-4">
+              {filteredGoals.map((goal) => (
+                <Card key={goal.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{goal.student}</h3>
+                          <Badge variant="outline" className="text-xs">
+                            Goal {goal.goal_number}
+                          </Badge>
+                          <Badge className={getStatusColor(goal.status)}>
+                            {getStatusIcon(goal.status)}
+                            <span className="ml-1 capitalize">{goal.status.replace('_', ' ')}</span>
+                          </Badge>
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span className="font-medium">{goal.area}</span>
+                          <span>•</span>
+                          <span>{goal.title}</span>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Archive className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-6">
+                    {/* Goal Description */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Goal Description</h4>
+                      <p className="text-gray-700 text-sm leading-relaxed">{goal.description}</p>
+                    </div>
+
+                    {/* Progress Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Current Progress</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progress toward goal</span>
+                            <span>{goal.progress_percentage}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                goal.status === 'exceeding' ? 'bg-green-500' :
+                                goal.status === 'on_track' ? 'bg-blue-500' :
+                                goal.status === 'at_risk' ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${goal.progress_percentage}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-xs text-gray-600">
+                            <span>Baseline: {goal.baseline}</span>
+                            <span>Current: {goal.current_progress}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Key Details</h4>
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="text-gray-600">Target:</span>
+                            <span className="ml-2 text-gray-900">{goal.target}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Data Collection:</span>
+                            <span className="ml-2 text-gray-900">{goal.data_collection}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Mastery Criteria:</span>
+                            <span className="ml-2 text-gray-900">{goal.mastery_criteria}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-3">Timeline & Staff</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center text-gray-600">
+                            <Calendar className="h-4 w-4 mr-2" />
+                            <span>End: {new Date(goal.end_date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600">
+                            <User className="h-4 w-4 mr-2" />
+                            <span>{goal.responsible_staff.join(', ')}</span>
+                          </div>
+                          <div className="flex items-center text-gray-600">
+                            <TrendingUp className="h-4 w-4 mr-2" />
+                            <span>Updated: {new Date(goal.last_updated).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Accommodations & Strategies */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Accommodations</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {goal.accommodations.map((accommodation, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {accommodation}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Teaching Strategies</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {goal.teaching_strategies.map((strategy, index) => (
+                            <Badge key={index} variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                              {strategy}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="flex space-x-3">
+                        <Button size="sm" variant="outline">
+                          <BarChart3 className="h-4 w-4 mr-2" />
+                          View Progress
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Add Data
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Lesson Plans
+                        </Button>
+                      </div>
+                      <Button size="sm">
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="progress-tracking" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {goals.slice(0, 4).map((goal) => (
+                <Card key={goal.id}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {goal.student} - {goal.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress: {goal.progress_percentage}%</span>
+                        <Badge className={getStatusColor(goal.status)}>
+                          {goal.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                          className={`h-3 rounded-full ${
+                            goal.status === 'exceeding' ? 'bg-green-500' :
+                            goal.status === 'on_track' ? 'bg-blue-500' :
+                            goal.status === 'at_risk' ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${goal.progress_percentage}%` }}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                        <div>
+                          <p className="text-gray-600">Baseline</p>
+                          <p className="font-semibold">Start</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Current</p>
+                          <p className="font-semibold text-blue-600">{goal.current_progress}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Target</p>
+                          <p className="font-semibold text-green-600">{goal.target_score}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="goal-analytics" className="space-y-6">
+            {/* Goal Area Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Goal Area Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {areas.map(area => {
+                    const areaGoals = goals.filter(g => g.area === area)
+                    if (areaGoals.length === 0) return null
+                    
+                    const avgProgress = areaGoals.reduce((sum, g) => sum + g.progress_percentage, 0) / areaGoals.length
+                    
+                    return (
+                      <div key={area} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{area}</h4>
+                          <p className="text-sm text-gray-600">{areaGoals.length} goals</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Avg Progress</p>
+                            <p className="font-semibold">{avgProgress.toFixed(1)}%</p>
+                          </div>
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-500 h-2 rounded-full"
+                              style={{ width: `${avgProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Student Progress Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Student Progress Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {students.map(student => {
+                    const studentGoals = goals.filter(g => g.student === student)
+                    if (studentGoals.length === 0) return null
+                    
+                    const avgProgress = studentGoals.reduce((sum, g) => sum + g.progress_percentage, 0) / studentGoals.length
+                    const onTrackGoals = studentGoals.filter(g => g.status === 'on_track' || g.status === 'exceeding').length
+                    
+                    return (
+                      <div key={student} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{student}</h4>
+                          <p className="text-sm text-gray-600">
+                            {studentGoals.length} goals • {onTrackGoals} on track
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Overall Progress</p>
+                            <p className="font-semibold">{avgProgress.toFixed(1)}%</p>
+                          </div>
+                          <div className="w-24 bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-500 h-2 rounded-full"
+                              style={{ width: `${avgProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+    </div>
+  )
+}

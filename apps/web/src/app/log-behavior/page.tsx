@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/auth-store'
+import { useRequireAuth } from '@/lib/use-require-auth'
 import { DashboardHeader } from '@/components/dashboard/header'
+import { BehaviorAnalyzer } from '@/components/behavior-analyzer'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, Clock, Save } from 'lucide-react'
 
 export default function LogBehaviorPage() {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user } = useAuthStore()
   const router = useRouter()
   
   const [selectedStudent, setSelectedStudent] = useState('')
@@ -24,11 +26,22 @@ export default function LogBehaviorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<Date | null>(null)
 
+  // Require authentication
+  const { isLoading } = useRequireAuth()
+
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'AIDE') {
+    if (user && user.role !== 'AIDE') {
       router.push('/dashboard')
     }
-  }, [isAuthenticated, user, router])
+  }, [user, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    )
+  }
 
   // Real IEP-aligned students with disability categories and behavior goals
   const students = [
@@ -110,10 +123,6 @@ export default function LogBehaviorPage() {
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  if (!isAuthenticated || user?.role !== 'AIDE') {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
   const formatTime = (seconds: number) => {
@@ -342,6 +351,39 @@ export default function LogBehaviorPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* AI Behavior Analysis */}
+        <div className="mt-8">
+          <BehaviorAnalyzer 
+            behaviorEvents={[
+              // Mock recent behavior events for analysis
+              {
+                id: '1',
+                antecedent: 'Transition from preferred activity to non-preferred task',
+                behavior: 'Verbal protest and refusal to comply',
+                consequence: 'Given 2-minute break, then completed task',
+                date: '2024-12-12',
+                severity: 'medium' as const
+              },
+              {
+                id: '2',
+                antecedent: 'Noise level increased in classroom',
+                behavior: 'Covered ears and moved to quiet corner',
+                consequence: 'Allowed to use noise-canceling headphones',
+                date: '2024-12-11',
+                severity: 'low' as const
+              },
+              {
+                id: '3',
+                antecedent: 'Peer took preferred seating spot',
+                behavior: 'Physical push and raised voice',
+                consequence: 'Conflict resolution discussion held',
+                date: '2024-12-10',
+                severity: 'high' as const
+              }
+            ]}
+          />
+        </div>
       </main>
     </div>
   )
