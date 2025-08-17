@@ -14,9 +14,5 @@
       "src": "/(.*)",
       "dest": "/apps/web/$1"
     }
-  ],
-  "alias": [
-    "accompli-learn.com",
-    "www.accompli-learn.com"
   ]
 }

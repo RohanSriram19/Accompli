@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@/lib/auth-store'
-import { Plus, FileText, AlertCircle, Users, BarChart3 } from 'lucide-react'
+import { Plus, FileText, AlertCircle, Users, BarChart3, Heart, MessageCircle, BookOpen, Home } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface QuickActionsProps {
@@ -78,6 +78,55 @@ export function QuickActions({ userRole }: QuickActionsProps) {
             icon: Users,
             action: () => router.push('/students'),
             color: "bg-blue-600 hover:bg-blue-700"
+          }
+        ]
+      case 'PARENT':
+        return [
+          {
+            title: "View My Child's Goals",
+            description: "See IEP goals and progress",
+            icon: BookOpen,
+            action: () => {
+              console.log('Navigating to goals page...')
+              router.push('/goals')
+            },
+            color: "bg-blue-600 hover:bg-blue-700"
+          },
+          {
+            title: "Progress Reports",
+            description: "Review academic progress",
+            icon: FileText,
+            action: () => {
+              console.log('Navigating to reports page...')
+              router.push('/reports')
+            },
+            color: "bg-green-600 hover:bg-green-700"
+          },
+          {
+            title: "Home Support Ideas",
+            description: "Get AI-powered strategies",
+            icon: Home,
+            action: () => {
+              // Trigger AI Assistant with parent support focus
+              const event = new CustomEvent('openAIAssistant', { 
+                detail: { prompt: 'Give me strategies to support my child\'s learning at home.' }
+              });
+              window.dispatchEvent(event);
+            },
+            color: "bg-purple-600 hover:bg-purple-700"
+          },
+          {
+            title: "Ask AI Assistant",
+            description: "Get help with IEP questions",
+            icon: MessageCircle,
+            action: () => {
+              // Trigger AI Assistant
+              const event = new CustomEvent('openAIAssistant', { 
+                detail: { prompt: 'I have questions about my child\'s IEP and special education rights.' }
+              });
+              window.dispatchEvent(event);
+            },
+            color: "bg-pink-600 hover:bg-pink-700"
           }
         ]
       default:

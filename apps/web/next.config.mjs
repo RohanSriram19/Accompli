@@ -16,6 +16,7 @@ const nextConfig = {
     NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE,
     NEXT_PUBLIC_WS_BASE: process.env.NEXT_PUBLIC_WS_BASE,
   },
+  // output: 'standalone', // Enable for Docker deployment only
 }
 
 export default nextConfig

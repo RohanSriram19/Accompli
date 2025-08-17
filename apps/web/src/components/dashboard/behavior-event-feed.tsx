@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Clock, User, Eye, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/lib/auth-store'
 
 interface BehaviorEvent {
   id: string
@@ -18,8 +19,28 @@ interface BehaviorEvent {
 
 export function BehaviorEventFeed() {
   const router = useRouter()
+  const { user } = useAuthStore()
   const [events, setEvents] = useState<BehaviorEvent[]>([])
   const [showingExamples, setShowingExamples] = useState(false)
+  
+  // Check if this is a demo account
+  const isDemoAccount = user?.email?.includes('@demo.com') || false
+
+  // Auto-load examples for demo accounts
+  useEffect(() => {
+    if (isDemoAccount && events.length === 0) {
+      // Automatically load examples for demo accounts
+      if (user?.role === 'PARENT') {
+        // For parents, show limited events related to their child
+        setEvents([exampleEvents[1]]) // Emma Johnson event
+        setShowingExamples(true)
+      } else {
+        // For teachers/aides/admins, show all recent events
+        setEvents(exampleEvents)
+        setShowingExamples(true)
+      }
+    }
+  }, [isDemoAccount, user?.role, events.length])
   
   // Example data
   const exampleEvents: BehaviorEvent[] = [
@@ -103,7 +124,7 @@ export function BehaviorEventFeed() {
           )}
           {showingExamples && (
             <Button variant="outline" size="sm" onClick={clearEvents}>
-              Clear
+              Clear Examples
             </Button>
           )}
         </div>
@@ -113,7 +134,13 @@ export function BehaviorEventFeed() {
           <div className="text-center py-8">
             <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-600">No recent behavior events</p>
-            <p className="text-sm text-gray-500 mt-1">Events will appear here when logged</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Events will appear here when logged or you can view examples
+            </p>
+            <Button variant="outline" className="mt-4" onClick={loadExamples}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Examples
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">

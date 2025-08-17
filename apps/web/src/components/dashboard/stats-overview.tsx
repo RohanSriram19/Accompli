@@ -2,27 +2,33 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, AlertTriangle, BookOpen, TrendingUp } from 'lucide-react'
+import { useAuthStore } from '@/lib/auth-store'
 
 export function StatsOverview() {
-  // Mock data - replace with real API calls
-  const stats = [
+  const { user } = useAuthStore()
+  
+  // Check if this is a demo account or a real account
+  const isDemoAccount = user?.email?.includes('@demo.com') || false
+  
+  // Demo data for demo accounts, empty data for real accounts
+  const stats = isDemoAccount ? [
     {
-      title: "Active Students",
-      value: "24",
-      change: "+2 this week",
+      title: user?.role === 'PARENT' ? "Active Students" : "Active Students",
+      value: user?.role === 'PARENT' ? "1" : "24",
+      change: user?.role === 'PARENT' ? "Your child" : "+2 this week",
       icon: Users,
       color: "text-blue-600"
     },
     {
       title: "Behavior Events",
-      value: "8",
+      value: user?.role === 'PARENT' ? "3" : "8",
       change: "Today",
       icon: AlertTriangle,
       color: "text-orange-600"
     },
     {
       title: "Lesson Plans",
-      value: "12",
+      value: user?.role === 'PARENT' ? "5" : "12",
       change: "Active",
       icon: BookOpen,
       color: "text-green-600"
@@ -33,6 +39,36 @@ export function StatsOverview() {
       change: "+5% from last week",
       icon: TrendingUp,
       color: "text-purple-600"
+    }
+  ] : [
+    // Real accounts start with empty data
+    {
+      title: user?.role === 'PARENT' ? "Active Students" : "Active Students",
+      value: "0",
+      change: user?.role === 'PARENT' ? "Add your child" : "Add students to get started",
+      icon: Users,
+      color: "text-blue-600"
+    },
+    {
+      title: "Behavior Events",
+      value: "0",
+      change: "No events yet",
+      icon: AlertTriangle,
+      color: "text-gray-400"
+    },
+    {
+      title: "Lesson Plans",
+      value: "0",
+      change: "None created",
+      icon: BookOpen,
+      color: "text-gray-400"
+    },
+    {
+      title: "Weekly Progress",
+      value: "0%",
+      change: "Start tracking progress",
+      icon: TrendingUp,
+      color: "text-gray-400"
     }
   ]
 

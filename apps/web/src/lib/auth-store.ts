@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type UserRole = 'TEACHER' | 'AIDE' | 'ADMIN'
+export type UserRole = 'TEACHER' | 'AIDE' | 'ADMIN' | 'PARENT'
 
 export interface User {
   id: string

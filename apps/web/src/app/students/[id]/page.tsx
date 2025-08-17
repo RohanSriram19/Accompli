@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/auth-store'
 import { useRequireAuth } from '@/lib/use-require-auth'
+import { iepDataService } from '@/lib/iep-data-service'
+import { StudentIEPData } from '@/lib/enhanced-ai-service'
 import { DashboardHeader } from '@/components/dashboard/header'
+import { SimpleResearchChatbot } from '@/components/simple-research-chatbot'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,11 +25,30 @@ export default function StudentDetailPage({ params }: StudentDetailProps) {
   const { user } = useAuthStore()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('overview')
+  const [studentData, setStudentData] = useState<StudentIEPData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   // Require authentication
   const { isLoading } = useRequireAuth()
 
-  if (isLoading) {
+  useEffect(() => {
+    const loadStudentData = async () => {
+      try {
+        const data = await iepDataService.getStudentIEPData(params.id)
+        setStudentData(data)
+      } catch (error) {
+        console.error('Error loading student data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (!isLoading) {
+      loadStudentData()
+    }
+  }, [params.id, isLoading])
+
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-lg">Loading...</div>
@@ -34,16 +56,23 @@ export default function StudentDetailPage({ params }: StudentDetailProps) {
     )
   }
 
-  // Mock student data - replace with real API call
+  if (!studentData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg text-red-600">Student not found</div>
+      </div>
+    )
+  }
+
+  // Use actual student data from IEP service
   const student = {
-    id: params.id,
-    name: 'Emma Johnson',
-    grade: '3rd',
-    age: 8,
-    disability: 'Specific Learning Disability',
-    placement: 'Resource Room (20%)',
-    teacher: 'Mrs. Sarah Johnson',
-    case_manager: 'Ms. Lisa Chen',
+    id: studentData.id,
+    name: studentData.name,
+    grade: studentData.grade,
+    disability: studentData.disability,
+    placement: 'Resource Room (varies)',
+    teacher: 'Current Teacher', // Would come from API
+    case_manager: 'Case Manager', // Would come from API
     iep: {
       effective_date: '2024-09-01',
       annual_review: '2025-09-01',
@@ -51,108 +80,41 @@ export default function StudentDetailPage({ params }: StudentDetailProps) {
       status: 'active'
     },
     present_levels: {
-      reading_level: '2.1 grade equivalent',
-      math_level: '2.3 grade equivalent',
-      strengths: [
-        'Strong verbal communication',
-        'Excellent listening comprehension',
-        'Works well in small groups',
-        'Shows enthusiasm for learning'
-      ],
-      needs: [
-        'Reading fluency and comprehension',
-        'Written expression organization',
-        'Math word problem strategies',
-        'Sustained attention to tasks'
-      ]
+      reading_level: 'Based on current assessments',
+      math_level: 'Based on current assessments',
+      strengths: studentData.iep.strengths,
+      needs: studentData.iep.needs
     },
-    goals: [
-      {
-        id: 'goal-1',
-        area: 'Reading',
-        statement: 'By September 2025, when given a 2nd-3rd grade level passage, Emma will read aloud with 95% accuracy and answer 4 out of 5 comprehension questions correctly.',
-        baseline: '85% accuracy, 2/5 comprehension',
-        target: '95% accuracy, 4/5 comprehension',
-        progress: 75,
-        status: 'on-track',
-        data_points: [
-          { date: '2024-09-15', score: 45, percentage: 45 },
-          { date: '2024-10-15', score: 55, percentage: 55 },
-          { date: '2024-11-15', score: 65, percentage: 65 },
-          { date: '2024-12-15', score: 75, percentage: 75 }
-        ],
-        next_review: '2024-12-30'
-      },
-      {
-        id: 'goal-2',
-        area: 'Writing',
-        statement: 'By September 2025, when given a writing prompt, Emma will write a 5-sentence paragraph with 80% spelling accuracy.',
-        baseline: '2-3 sentences, 60% spelling accuracy',
-        target: '5 sentences, 80% spelling accuracy',
-        progress: 50,
-        status: 'needs-attention',
-        data_points: [
-          { date: '2024-09-15', score: 30, percentage: 30 },
-          { date: '2024-10-15', score: 35, percentage: 35 },
-          { date: '2024-11-15', score: 45, percentage: 45 },
-          { date: '2024-12-15', score: 50, percentage: 50 }
-        ],
-        next_review: '2024-12-30'
-      },
-      {
-        id: 'goal-3',
-        area: 'Math',
-        statement: 'By September 2025, when presented with 2-step word problems, Emma will solve with 80% accuracy across 4 consecutive sessions.',
-        baseline: '1-step problems at 70% accuracy',
-        target: '2-step problems at 80% accuracy',
-        progress: 60,
-        status: 'on-track',
-        data_points: [
-          { date: '2024-09-15', score: 40, percentage: 40 },
-          { date: '2024-10-15', score: 50, percentage: 50 },
-          { date: '2024-11-15', score: 55, percentage: 55 },
-          { date: '2024-12-15', score: 60, percentage: 60 }
-        ],
-        next_review: '2024-12-30'
-      }
-    ],
-    accommodations: [
-      'Extended time (1.5x)',
-      'Read aloud for non-reading subjects',
-      'Graphic organizers for writing',
-      'Calculator for multi-step problems',
-      'Frequent breaks as needed'
-    ],
-    services: [
-      {
-        type: 'Special Education',
-        frequency: '240 minutes/week',
-        location: 'Resource Room',
-        provider: 'Ms. Lisa Chen'
-      },
-      {
-        type: 'Speech-Language Therapy',
-        frequency: '30 minutes/week',
-        location: 'Speech Room',
-        provider: 'Mr. David Wilson'
-      }
-    ],
-    recent_behavior: [
-      {
-        date: '2024-12-15',
-        type: 'Task Refusal',
-        severity: 'low',
-        intervention: 'Choice provided, break offered',
-        outcome: 'Completed task after 5-minute break'
-      },
-      {
-        date: '2024-12-14',
-        type: 'Off-task behavior',
-        severity: 'low',
-        intervention: 'Proximity and verbal reminder',
-        outcome: 'Returned to task immediately'
-      }
-    ]
+    goals: studentData.iep.goals.map((goal, index) => ({
+      id: goal.id,
+      area: goal.domain,
+      statement: goal.goalText,
+      baseline: 'Initial assessment data', // Would come from actual baseline data
+      target: goal.targetDate,
+      progress: goal.progress,
+      status: goal.status === 'in_progress' ? (goal.progress >= 70 ? 'on-track' : 'needs-attention') : goal.status,
+      data_points: [
+        { date: '2024-09-15', score: Math.max(0, goal.progress - 30), percentage: Math.max(0, goal.progress - 30) },
+        { date: '2024-10-15', score: Math.max(0, goal.progress - 20), percentage: Math.max(0, goal.progress - 20) },
+        { date: '2024-11-15', score: Math.max(0, goal.progress - 10), percentage: Math.max(0, goal.progress - 10) },
+        { date: '2024-12-15', score: goal.progress, percentage: goal.progress }
+      ],
+      next_review: goal.targetDate
+    })),
+    accommodations: Object.values(studentData.iep.accommodations).flat(),
+    services: Object.entries(studentData.iep.services).map(([type, details]) => ({
+      type,
+      frequency: details,
+      location: 'Resource Room', // Default location
+      provider: 'Service Provider' // Would come from actual provider data
+    })),
+    recent_behavior: studentData.recentBehaviorEvents?.slice(0, 3).map(event => ({
+      date: event.date,
+      type: event.type,
+      severity: event.severity,
+      intervention: event.consequence || 'Standard intervention',
+      outcome: 'Positive resolution'
+    })) || []
   }
 
   const getProgressColor = (progress: number) => {
@@ -184,7 +146,7 @@ export default function StudentDetailPage({ params }: StudentDetailProps) {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{student.name}</h1>
-                <p className="text-lg text-gray-600">Grade {student.grade} • Age {student.age}</p>
+                <p className="text-lg text-gray-600">Grade {student.grade}</p>
                 <p className="text-sm text-gray-500">{student.disability} • {student.placement}</p>
               </div>
             </div>
@@ -463,6 +425,9 @@ export default function StudentDetailPage({ params }: StudentDetailProps) {
           </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Research-Aware AI Chatbot with Student Context */}
+      <SimpleResearchChatbot studentData={studentData} />
     </div>
   )
 }

@@ -1,23 +1,39 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/auth-store'
+import { iepDataService } from '@/lib/iep-data-service'
+import { StudentIEPData } from '@/lib/enhanced-ai-service'
 import { DashboardHeader } from '@/components/dashboard/header'
 import { StudentList } from '@/components/dashboard/student-list'
 import { BehaviorEventFeed } from '@/components/dashboard/behavior-event-feed'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { StatsOverview } from '@/components/dashboard/stats-overview'
+import { SimpleResearchChatbot } from '@/components/simple-research-chatbot'
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuthStore()
   const router = useRouter()
+  const [allStudentData, setAllStudentData] = useState<StudentIEPData[]>([])
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/sign-in')
+    } else {
+      // Load all student data for dashboard-level AI assistance
+      loadStudentData()
     }
   }, [isAuthenticated, router])
+
+  const loadStudentData = async () => {
+    try {
+      const students = await iepDataService.getAllStudentsWithIEPData()
+      setAllStudentData(students)
+    } catch (error) {
+      console.error('Error loading student data:', error)
+    }
+  }
 
   if (!isAuthenticated || !user) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -37,6 +53,7 @@ export default function DashboardPage() {
             {user.role === 'TEACHER' && "Manage your students and track their progress"}
             {user.role === 'AIDE' && "Log behavior events and support your students"}
             {user.role === 'ADMIN' && "Oversee programs and generate reports"}
+            {user.role === 'PARENT' && "Stay connected with your child's IEP progress and team"}
           </p>
         </div>
 
@@ -53,6 +70,11 @@ export default function DashboardPage() {
             {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
               <StudentList />
             )}
+            
+            {/* Parent's Children - Show for Parents */}
+            {user.role === 'PARENT' && (
+              <StudentList />
+            )}
           </div>
 
           {/* Sidebar */}
@@ -62,6 +84,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      
+      {/* Research-Aware AI Chatbot - Always visible */}
+      <SimpleResearchChatbot />
     </div>
   )
 }

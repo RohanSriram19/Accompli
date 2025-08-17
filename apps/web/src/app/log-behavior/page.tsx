@@ -11,13 +11,53 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, Save } from 'lucide-react'
+import { AlertTriangle, Clock, Save, Eye } from 'lucide-react'
 
 export default function LogBehaviorPage() {
   const { user } = useAuthStore()
   const router = useRouter()
   
   const [selectedStudent, setSelectedStudent] = useState('')
+  const [behaviorEvents, setBehaviorEvents] = useState<any[]>([])
+  const [showingExamples, setShowingExamples] = useState(false)
+  
+  // Example behavior events for demonstration
+  const exampleBehaviorEvents = [
+    {
+      id: '1',
+      antecedent: 'Transition from preferred activity to non-preferred task',
+      behavior: 'Verbal protest and refusal to comply',
+      consequence: 'Given 2-minute break, then completed task',
+      date: '2024-12-12',
+      severity: 'medium' as const
+    },
+    {
+      id: '2',
+      antecedent: 'Noise level increased in classroom',
+      behavior: 'Covered ears and moved to quiet corner',
+      consequence: 'Allowed to use noise-canceling headphones',
+      date: '2024-12-11',
+      severity: 'low' as const
+    },
+    {
+      id: '3',
+      antecedent: 'Peer took preferred seating spot',
+      behavior: 'Physical push and raised voice',
+      consequence: 'Conflict resolution discussion held',
+      date: '2024-12-10',
+      severity: 'high' as const
+    }
+  ]
+
+  const loadExampleBehaviorEvents = () => {
+    setBehaviorEvents(exampleBehaviorEvents)
+    setShowingExamples(true)
+  }
+
+  const clearBehaviorEvents = () => {
+    setBehaviorEvents([])
+    setShowingExamples(false)
+  }
   const [antecedent, setAntecedent] = useState('')
   const [behavior, setBehavior] = useState('')
   const [consequence, setConsequence] = useState('')
@@ -354,35 +394,41 @@ export default function LogBehaviorPage() {
 
         {/* AI Behavior Analysis */}
         <div className="mt-8">
-          <BehaviorAnalyzer 
-            behaviorEvents={[
-              // Mock recent behavior events for analysis
-              {
-                id: '1',
-                antecedent: 'Transition from preferred activity to non-preferred task',
-                behavior: 'Verbal protest and refusal to comply',
-                consequence: 'Given 2-minute break, then completed task',
-                date: '2024-12-12',
-                severity: 'medium' as const
-              },
-              {
-                id: '2',
-                antecedent: 'Noise level increased in classroom',
-                behavior: 'Covered ears and moved to quiet corner',
-                consequence: 'Allowed to use noise-canceling headphones',
-                date: '2024-12-11',
-                severity: 'low' as const
-              },
-              {
-                id: '3',
-                antecedent: 'Peer took preferred seating spot',
-                behavior: 'Physical push and raised voice',
-                consequence: 'Conflict resolution discussion held',
-                date: '2024-12-10',
-                severity: 'high' as const
-              }
-            ]}
-          />
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Behavior Analysis</CardTitle>
+              <div className="flex space-x-2">
+                {behaviorEvents.length === 0 && (
+                  <Button variant="outline" size="sm" onClick={loadExampleBehaviorEvents}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Load Examples
+                  </Button>
+                )}
+                {showingExamples && (
+                  <Button variant="outline" size="sm" onClick={clearBehaviorEvents}>
+                    Clear Examples
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {behaviorEvents.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">No behavior events to analyze</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Log behavior events above or load examples to see AI analysis
+                  </p>
+                  <Button variant="outline" className="mt-4" onClick={loadExampleBehaviorEvents}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Load Example Data
+                  </Button>
+                </div>
+              ) : (
+                <BehaviorAnalyzer behaviorEvents={behaviorEvents} />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

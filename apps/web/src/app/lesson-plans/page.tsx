@@ -27,6 +27,9 @@ export default function LessonPlansPage() {
   // Require authentication
   const { isLoading } = useRequireAuth()
 
+  // Check if this is a demo account
+  const isDemoAccount = user?.email?.includes('@demo.com') || false
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -35,8 +38,8 @@ export default function LessonPlansPage() {
     )
   }
 
-  // Mock lesson plans data
-  const lessonPlans = [
+  // Mock lesson plans data - only show for demo accounts
+  const lessonPlans = isDemoAccount ? [
     {
       id: '1',
       title: 'Reading Comprehension: Main Idea and Details',
@@ -117,7 +120,7 @@ export default function LessonPlansPage() {
       created_by: 'Sarah Johnson',
       created_at: '2024-11-01'
     }
-  ]
+  ] : [] // Empty array for non-demo accounts
 
   const subjects = ['Reading', 'Math', 'Writing', 'Social Skills', 'Transition', 'Science', 'Social Studies']
   const grades = ['K', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th']

@@ -7,14 +7,14 @@ export interface AIAssistantMessage {
 }
 
 export interface AIAssistantContext {
-  userRole: 'TEACHER' | 'AIDE' | 'ADMIN'
+  userRole: 'TEACHER' | 'AIDE' | 'ADMIN' | 'PARENT'
   studentInfo?: {
     name: string
     grade: string
     disability: string
     currentGoals: string[]
   }
-  conversationType: 'general' | 'iep_goals' | 'lesson_planning' | 'behavior_analysis' | 'report_writing'
+  conversationType: 'general' | 'iep_goals' | 'lesson_planning' | 'behavior_analysis' | 'report_writing' | 'parent_support'
 }
 
 class AIService {
@@ -35,7 +35,8 @@ Your expertise includes:
 - Differentiated instruction and accommodations
 - Transition planning and life skills development
 - Assistive technology recommendations
-- Data collection and progress reporting`
+- Data collection and progress reporting
+${context.userRole === 'PARENT' ? '- Parent advocacy and rights under IDEA\n- Home-school collaboration strategies\n- Understanding special education terminology and processes' : ''}`
 
     switch (context.conversationType) {
       case 'iep_goals':
@@ -77,7 +78,23 @@ Current Focus: Report Writing and Documentation
 - Ensure compliance with special education documentation requirements
 - Suggest parent-friendly language for communication`
 
+      case 'parent_support':
+        return `${basePrompt}
+
+Current Focus: Parent Support and Advocacy
+- Explain special education rights under IDEA
+- Help prepare for IEP meetings and reviews
+- Provide strategies for supporting learning at home
+- Explain evaluation processes and results
+- Suggest questions to ask the IEP team
+- Offer guidance on advocating for your child's needs`
+
       default:
+        if (context.userRole === 'PARENT') {
+          return `${basePrompt}
+
+I'm here to help you navigate your child's special education journey. I can assist with understanding IEP goals, preparing for meetings, supporting learning at home, and advocating for your child's needs. How can I help you today?`
+        }
         return `${basePrompt}
 
 I'm here to help with any special education related questions or tasks. How can I assist you today?`

@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
     # Database
-    DATABASE_URL: str = "postgresql+psycopg://accompli:accompli@localhost:5432/accompli"
+    DATABASE_URL: str = "sqlite:///./accompli.db"
     
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

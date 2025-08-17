@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/auth-store'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -15,10 +17,11 @@ import { Bell, Settings, LogOut, User } from 'lucide-react'
 
 export function DashboardHeader() {
   const { user, signOut } = useAuthStore()
+  const router = useRouter()
 
   const handleSignOut = () => {
     signOut()
-    window.location.href = '/sign-in'
+    router.push('/sign-in')
   }
 
   if (!user) return null
@@ -34,32 +37,42 @@ export function DashboardHeader() {
 
           {/* Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <a href="/dashboard" className="text-gray-900 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+            <Link href="/dashboard" className="text-gray-900 hover:text-blue-600 px-3 py-2 text-sm font-medium">
               Dashboard
-            </a>
+            </Link>
             {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
               <>
-                <a href="/students" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                <Link href="/students" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Students
-                </a>
-                <a href="/goals" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link href="/goals" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   IEP Goals
-                </a>
-                <a href="/lesson-plans" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link href="/lesson-plans" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Lesson Plans
-                </a>
-                <a href="/assessments" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link href="/assessments" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Assessments
-                </a>
-                <a href="/reports" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                </Link>
+                <Link href="/reports" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                   Reports
-                </a>
+                </Link>
               </>
             )}
             {user.role === 'AIDE' && (
-              <a href="/log-behavior" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <Link href="/log-behavior" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                 Log Behavior
-              </a>
+              </Link>
+            )}
+            {user.role === 'PARENT' && (
+              <>
+                <Link href="/goals" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                  My Child's Goals
+                </Link>
+                <Link href="/reports" className="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+                  Progress Reports
+                </Link>
+              </>
             )}
           </nav>
 

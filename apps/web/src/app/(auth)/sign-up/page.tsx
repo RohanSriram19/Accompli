@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore, UserRole } from '@/lib/auth-store'
-import { BookOpen, Users, Shield } from 'lucide-react'
+import { userStorage } from '@/lib/user-storage'
+import { BookOpen, Users, Shield, Heart } from 'lucide-react'
 
 interface SignUpFormData {
   firstName: string
@@ -65,11 +66,11 @@ export default function SignUpPage() {
       setError('Please select your role')
       return false
     }
-    if (!formData.organizationName.trim()) {
+    if (!formData.organizationName.trim() && formData.role !== 'PARENT') {
       setError('Please enter your organization name')
       return false
     }
-    if (formData.role !== 'ADMIN' && !formData.organizationCode?.trim()) {
+    if (formData.role !== 'ADMIN' && formData.role !== 'PARENT' && !formData.organizationCode?.trim()) {
       setError('Please enter your organization code (provided by your administrator)')
       return false
     }
@@ -94,21 +95,23 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      // Mock signup process - replace with real API call
-      await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
-
-      // Generate mock user
-      const newUser = {
-        id: `user-${Date.now()}`,
-        email: formData.email,
-        role: formData.role as UserRole,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        org_id: formData.role === 'ADMIN' ? `org-${Date.now()}` : 'org-1',
-        created_at: new Date().toISOString(),
+      // Check if email already exists
+      if (userStorage.emailExists(formData.email)) {
+        throw new Error('An account with this email already exists. Please try signing in instead.')
       }
 
-      await signIn(newUser, 'mock-signup-token')
+      // Create new user account
+      const newUser = userStorage.createUser({
+        email: formData.email,
+        password: formData.password,
+        role: formData.role as UserRole,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        organizationCode: formData.organizationCode,
+      })
+
+      // Sign in the new user
+      await signIn(newUser, `token-${newUser.id}`)
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed')
@@ -135,6 +138,12 @@ export default function SignUpPage() {
       label: 'Administrator/Principal',
       description: 'Manage organization settings and oversee programs',
       icon: Shield
+    },
+    {
+      value: 'PARENT' as UserRole,
+      label: 'Parent/Guardian',
+      description: 'Access your child\'s IEP information and collaborate with the team',
+      icon: Heart
     }
   ]
 
@@ -266,18 +275,25 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="organizationName">
-                    {formData.role === 'ADMIN' ? 'School/Organization Name' : 'Your School/Organization'}
+                    {formData.role === 'ADMIN' ? 'School/Organization Name' : 
+                     formData.role === 'PARENT' ? 'Your Child\'s School (Optional)' :
+                     'Your School/Organization'}
                   </Label>
                   <Input
                     id="organizationName"
-                    placeholder="Lincoln Elementary School"
+                    placeholder={formData.role === 'PARENT' ? 'Lincoln Elementary School (optional)' : 'Lincoln Elementary School'}
                     value={formData.organizationName}
                     onChange={(e) => setFormData(prev => ({ ...prev, organizationName: e.target.value }))}
-                    required
+                    required={formData.role !== 'PARENT'}
                   />
+                  {formData.role === 'PARENT' && (
+                    <p className="text-xs text-gray-500">
+                      You can add your child's school information later to connect with their IEP team
+                    </p>
+                  )}
                 </div>
 
-                {formData.role !== 'ADMIN' && (
+                {formData.role !== 'ADMIN' && formData.role !== 'PARENT' && (
                   <div className="space-y-2">
                     <Label htmlFor="organizationCode">Organization Code</Label>
                     <Input
@@ -290,6 +306,29 @@ export default function SignUpPage() {
                     <p className="text-xs text-gray-500">
                       Contact your administrator if you don't have this code
                     </p>
+                  </div>
+                )}
+
+                {formData.role === 'PARENT' && (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-start space-x-3">
+                      <Heart className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-blue-900 mb-1">Welcome, Parent!</h4>
+                        <p className="text-sm text-blue-700">
+                          As a parent, you'll be able to:
+                        </p>
+                        <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                          <li>• View your child's IEP goals and progress</li>
+                          <li>• Communicate with the IEP team</li>
+                          <li>• Access behavior reports and insights</li>
+                          <li>• Collaborate on educational planning</li>
+                        </ul>
+                        <p className="text-xs text-blue-600 mt-2 font-medium">
+                          No organization code required - you can connect with your child's school team after registration.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

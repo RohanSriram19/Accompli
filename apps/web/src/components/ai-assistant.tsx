@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { 
   MessageSquare, Send, Minimize2, Maximize2, Bot, User, 
-  Lightbulb, FileText, BarChart3, Target, X 
+  Lightbulb, FileText, BarChart3, Target, X, Home 
 } from 'lucide-react'
 import { aiService, AIAssistantMessage, AIAssistantContext } from '@/lib/ai-service'
 import { useAuthStore } from '@/lib/auth-store'
@@ -42,6 +42,24 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
     }
   }, [isOpen, initialPrompt])
 
+  useEffect(() => {
+    // Listen for custom events from quick actions
+    const handleOpenAIAssistant = (event: CustomEvent) => {
+      setIsOpen(true)
+      if (event.detail?.prompt) {
+        setTimeout(() => {
+          handleSendMessage(event.detail.prompt)
+        }, 100)
+      }
+    }
+
+    window.addEventListener('openAIAssistant', handleOpenAIAssistant as EventListener)
+    
+    return () => {
+      window.removeEventListener('openAIAssistant', handleOpenAIAssistant as EventListener)
+    }
+  }, [])
+
   const aiContext: AIAssistantContext = {
     userRole: user?.role || 'TEACHER',
     conversationType,
@@ -51,6 +69,8 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
   const handleSendMessage = async (message?: string) => {
     const messageToSend = message || inputValue.trim()
     if (!messageToSend || isLoading) return
+
+    console.log('Sending message:', messageToSend) // Debug log
 
     const userMessage: AIAssistantMessage = {
       role: 'user',
@@ -63,6 +83,7 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
     setIsLoading(true)
 
     try {
+      console.log('Calling AI service with context:', aiContext) // Debug log
       const response = await aiService.chat([...messages, userMessage], aiContext)
       
       const assistantMessage: AIAssistantMessage = {
@@ -76,7 +97,7 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
       console.error('AI Assistant Error:', error)
       const errorMessage: AIAssistantMessage = {
         role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again.',
+        content: `I apologize, but I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
         timestamp: new Date().toISOString()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -97,25 +118,33 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
       type: 'iep_goals' as const, 
       label: 'IEP Goals', 
       icon: Target,
-      prompt: 'Help me create SMART IEP goals for my student.'
+      prompt: user?.role === 'PARENT' ? 
+        'Help me understand my child\'s IEP goals and how to support them at home.' :
+        'Help me create SMART IEP goals for my student.'
     },
     { 
       type: 'lesson_planning' as const, 
-      label: 'Lesson Plans', 
-      icon: FileText,
-      prompt: 'I need help creating an IEP-aligned lesson plan.'
+      label: user?.role === 'PARENT' ? 'Home Support' : 'Lesson Plans', 
+      icon: user?.role === 'PARENT' ? Home : FileText,
+      prompt: user?.role === 'PARENT' ? 
+        'Give me strategies to support my child\'s learning at home.' :
+        'I need help creating an IEP-aligned lesson plan.'
     },
     { 
       type: 'behavior_analysis' as const, 
-      label: 'Behavior Analysis', 
+      label: 'Behavior Support', 
       icon: BarChart3,
-      prompt: 'Help me analyze behavior data and suggest interventions.'
+      prompt: user?.role === 'PARENT' ? 
+        'Help me understand my child\'s behavior patterns and support strategies.' :
+        'Help me analyze behavior data and suggest interventions.'
     },
     { 
-      type: 'report_writing' as const, 
-      label: 'Report Writing', 
+      type: user?.role === 'PARENT' ? 'parent_support' as const : 'report_writing' as const, 
+      label: user?.role === 'PARENT' ? 'IEP Meetings' : 'Report Writing', 
       icon: Lightbulb,
-      prompt: 'I need assistance writing progress reports or IEP documentation.'
+      prompt: user?.role === 'PARENT' ? 
+        'Help me prepare for my child\'s IEP meeting and understand my rights.' :
+        'I need assistance writing progress reports or IEP documentation.'
     }
   ]
 
@@ -238,7 +267,12 @@ export function AIAssistant({ context, initialPrompt, className = '' }: AIAssist
               <div className="text-center text-sm text-gray-500 mt-8">
                 <Bot className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                 <p>Hi! I'm your AI assistant for special education.</p>
-                <p className="mt-1">How can I help you today?</p>
+                <p className="mt-1">
+                  {user?.role === 'PARENT' 
+                    ? 'I can help you navigate your child\'s IEP journey and support their learning.'
+                    : 'How can I help you today?'
+                  }
+                </p>
               </div>
             )}
             
