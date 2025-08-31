@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useAuthStore } from '@/lib/auth-store'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
@@ -13,11 +14,13 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
-import { Bell, Settings, LogOut, User } from 'lucide-react'
+import { Bell, Settings, LogOut, User, FileText } from 'lucide-react'
+import { ChangelogModal } from '@/components/changelog-modal'
 
 export function DashboardHeader() {
   const { user, signOut } = useAuthStore()
   const router = useRouter()
+  const [showChangelog, setShowChangelog] = useState(false)
 
   const handleSignOut = () => {
     signOut()
@@ -117,8 +120,8 @@ export function DashboardHeader() {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={() => setShowChangelog(true)}>
+                  <FileText className="mr-2 h-4 w-4" />
                   View Changelog
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -131,6 +134,12 @@ export function DashboardHeader() {
           </div>
         </div>
       </div>
+      
+      {/* Changelog Modal */}
+      <ChangelogModal 
+        open={showChangelog} 
+        onOpenChange={setShowChangelog} 
+      />
     </header>
   )
 }
