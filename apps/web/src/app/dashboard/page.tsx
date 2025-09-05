@@ -10,6 +10,7 @@ import { StudentList } from '@/components/dashboard/student-list'
 import { BehaviorEventFeed } from '@/components/dashboard/behavior-event-feed'
 import { QuickActions } from '@/components/dashboard/quick-actions'
 import { StatsOverview } from '@/components/dashboard/stats-overview'
+import { QuickStatsBar } from '@/components/dashboard/quick-stats-bar'
 import { SimpleResearchChatbot } from '@/components/simple-research-chatbot'
 
 export default function DashboardPage() {
@@ -81,6 +82,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Quick Stats Bar */}
+        <QuickStatsBar />
 
         {/* Stats Overview */}
         <StatsOverview />
