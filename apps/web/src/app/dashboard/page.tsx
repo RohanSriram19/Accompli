@@ -46,15 +46,40 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user.first_name}!
-          </h1>
-          <p className="text-gray-600">
-            {user.role === 'TEACHER' && "Manage your students and track their progress"}
-            {user.role === 'AIDE' && "Log behavior events and support your students"}
-            {user.role === 'ADMIN' && "Oversee programs and generate reports"}
-            {user.role === 'PARENT' && "Stay connected with your child's IEP progress and team"}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Welcome back, {user.first_name}!
+              </h1>
+              <p className="text-gray-600">
+                {user.role === 'TEACHER' && "Manage your students and track their progress"}
+                {user.role === 'AIDE' && "Log behavior events and support your students"}
+                {user.role === 'ADMIN' && "Oversee programs and generate reports"}
+                {user.role === 'PARENT' && "Stay connected with your child's IEP progress and team"}
+              </p>
+            </div>
+            {/* Current time display */}
+            <div className="text-sm text-gray-500">
+              {new Date().toLocaleString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500">Today</p>
+              <p className="text-lg font-semibold text-blue-600">
+                {new Date().toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  month: 'short', 
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Overview */}
